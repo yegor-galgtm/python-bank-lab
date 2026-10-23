@@ -1,3 +1,27 @@
+class BankException(Exception):
+    "Базова ошибка банка."
+    pass
+
+class InsufficientFundsError(BankException):
+    " недостаточно средств для снятия/перевода."
+    pass
+
+class AccountNotFoundError(BankException):
+    "счет или клиент не найден"
+    pass
+
+class CurrencyMismatchError(BankException):
+    " попытка перевести средства между счетами разных валют."
+    pass
+
+class DuplicateCurrencyError(BankExecption):
+    "попытка открыть второй счет в той же валюте."
+    pass
+
+class AccountNotEmptyError(BankException):
+    "попытка закрыть счет с ненулевым балансом."
+    pass
+
 class Account():
     _next_id = 1
     id_owner = 0
@@ -64,4 +88,7 @@ class Bank():
 
     def create_accounts(self):
         print("--Создание счета для клиента--")
+
+
+
 
