@@ -1,67 +1,65 @@
 class BankException(Exception):
-    "Базова ошибка банка."
+    "Базовая ошибка банковской системы."
     pass
+
 
 class InsufficientFundsError(BankException):
-    " недостаточно средств для снятия/перевода."
+    "Недостаточно средств для снятия или перевода."
     pass
+
 
 class AccountNotFoundError(BankException):
-    "счет или клиент не найден"
+    "Счёт или клиент не найден."
     pass
+
 
 class CurrencyMismatchError(BankException):
-    " попытка перевести средства между счетами разных валют."
+    "Попытка перевода между счетами разных валют."
     pass
+
 
 class DuplicateCurrencyError(BankException):
-    "попытка открыть второй счет в той же валюте."
+    "Попытка открыть второй счёт в той же валюте."
     pass
 
+
 class AccountNotEmptyError(BankException):
-    "попытка закрыть счет с ненулевым балансом."
+    "Попытка закрыть счёт с ненулевым балансом."
     pass
+
 
 class Account():
     _next_id = 1
-    id_owner = 0
-    id_account = 0
-    valute = ""
-    balance = 0
-
-    def __init__(self, valute, balance, id_owner):
+    def __init__(self, valute, id_owner):
         self.id_account = Account._next_id
         Account._next_id += 1
-
         self.id_owner = id_owner
-        match valute:
-            case "RUB":
-                self.valute = valute
-            case "USD":
-                self.valute = valute
-            case "EUR":
-                self.valute = valute
-            case _:
-                print("Ошибка: Валюта введена некорректна!")
-        self.balance = balance
+
+        if valute not in ("EUR", "USD", "RUB"):
+            raise ValueError(f"Недопустимая валюта: {valute}")
+        self.valute = valute
+
+        self.balance = 0
 
     def plus(self, sums):
-        if sums < 0:
-            print("Ошибка: Сумма пополнения некорректна!")
-        else:
-             self.balance += sums
+        if sums <= 0:
+            raise ValueError("Сумма пополнения должна быть положительной")
+        self.balance += sums
 
     def minus(self, sums):
+        if sums <= 0:
+            raise ValueError("Сумма снятия должна быть положительной")
+
         if sums > self.balance:
-            print(f"Ошибка: средств на балансе меньше, чем сумма снятия")
-        else:
-            self.balance -= sums
+            raise InsufficientFundsError(
+                f"Запрошено {sums}, доступно {self.balance}"
+            )
+
+        self.balance -= sums
 
 
 class Client():
     _next_id = 1
-    id_client = 0
-    full_name = ""
 
     def __init__(self, full_name):
         self.id_client = Client._next_id
@@ -71,24 +69,41 @@ class Client():
         self.accounts = []
 
 class Bank():
-    clients = {}
-    accounts = {}
     def __init__(self):
         self.clients = {}
         self.accounts = {}
-
     def create_client(self):
-      print("--Создание нового клиента банка--")
-      print("Введите ФИО нового клиента банка: ")
-      name, last_name, first_name = input(), input(), input()
-      Member = Client(name, last_name, first_name)
-      print("Клиент успешно создан!")
-      self.clients[Member.id_client] = Member
-      print("Клиент добавлен в список клиентов")
+        print("--Создание нового клиента банка--")
+        full_name = input("Введите ФИО нового клиента банка: ")
+        if not full_name.strip():
+            raise ValueError("ФИО не может быть пустым")
+
+        client = Client(full_name)
+        self.clients[client.id_client] = client
+
+        print(f"Клиент успешно создан! ID: {client.id_client}")
+        return client
 
     def create_accounts(self):
         print("--Создание счета для клиента--")
+        client_id = int(input("Введите ID клиента: "))
+        if client_id not in self.clients:
+            raise AccountNotFoundError(f"Клиент с ID {client_id} не найден")
+        client = self.clients[client_id]
 
+        valute = input("Введите валюту счета (RUB/USD/EUR): ").strip().upper()
 
+        for acc in client.accounts:
+            if acc.valute == valute:
+                raise DuplicateCurrencyError(
+                    f"У клиента уже есть счёт в валюте {valute}"
+                )
 
-
+        account = Account(valute, client.id_client)
+        client.accounts.append(account)
+        self.accounts[account.id_account] = account
+        print(
+            f"Счёт {account.id_account} ({account.valute}) "
+            f"открыт для клиента {client.full_name}"
+        )
+        return account
