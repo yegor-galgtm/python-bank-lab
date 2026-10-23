@@ -2,7 +2,7 @@ class Account():
     _next_id = 1
     id_owner = 0
     id_account = 0
-    valute = '' #RUB USD EUR
+    valute = ""
     balance = 0
 
     def __init__(self, valute, balance, id_owner):
@@ -10,28 +10,58 @@ class Account():
         Account._next_id += 1
 
         self.id_owner = id_owner
-        self.valute = valute
+        match valute:
+            case "RUB":
+                self.valute = valute
+            case "USD":
+                self.valute = valute
+            case "EUR":
+                self.valute = valute
+            case _:
+                print("Ошибка: Валюта введена некорректна!")
         self.balance = balance
+
+    def plus(self, sums):
+        if sums < 0:
+            print("Ошибка: Сумма пополнения некорректна!")
+        else:
+             self.balance += sums
+
+    def minus(self, sums):
+        if sums > self.balance:
+            print(f"Ошибка: средств на балансе меньше, чем сумма снятия")
+        else:
+            self.balance -= sums
 
 
 class Client():
     _next_id = 1
     id_client = 0
-    name = ''
-    last_name = ''
-    first_name = ''
+    full_name = ""
 
-    def __init__(self, name, last_name, first_name):
+    def __init__(self, full_name):
         self.id_client = Client._next_id
         Client._next_id += 1
 
-        self.name = name
-        self.last_name = last_name
-        self.first_name = first_name
+        self.full_name = full_name
         self.accounts = []
 
-
 class Bank():
+    clients = {}
+    accounts = {}
     def __init__(self):
         self.clients = {}
         self.accounts = {}
+
+    def create_client(self):
+      print("--Создание нового клиента банка--")
+      print("Введите ФИО нового клиента банка: ")
+      name, last_name, first_name = input(), input(), input()
+      Member = Client(name, last_name, first_name)
+      print("Клиент успешно создан!")
+      self.clients[Member.id_client] = Member
+      print("Клиент добавлен в список клиентов")
+
+    def create_accounts(self):
+        print("--Создание счета для клиента--")
+
