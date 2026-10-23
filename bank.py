@@ -14,7 +14,7 @@ class CurrencyMismatchError(BankException):
     " попытка перевести средства между счетами разных валют."
     pass
 
-class DuplicateCurrencyError(BankExecption):
+class DuplicateCurrencyError(BankException):
     "попытка открыть второй счет в той же валюте."
     pass
 
