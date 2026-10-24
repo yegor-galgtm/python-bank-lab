@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class BankException(Exception):
     "Базовая ошибка банковской системы."
     pass
@@ -189,3 +191,34 @@ class Bank():
         start_acc.minus(money)
         end_acc.plus(money)
 
+    def statement(self):
+        id_own = read_int("Введите id клиента для получения выписки: ")
+        client = self.get_client(id_own)
+
+        result = {}
+        for acc in client.accounts:
+            result[acc.valute] = result.get(acc.valute, 0) + acc.balance
+
+        time_gener = datetime.now()
+        path = f"statement_{id_own}.txt"
+
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(f"Выписка по клиенту: {client.full_name} (ID {id_own})\n")
+            file.write(f"Сгенерировано: {time_gener:%Y-%m-%d %H:%M:%S}\n")
+            file.write("\nСчета:\n")
+
+            if not client.accounts:
+                file.write("  Счетов нет\n")
+            else:
+                for acc in client.accounts:
+                    file.write(f"  Счёт {acc.id_account}: {acc.valute} — {acc.balance}\n")
+
+            file.write("\nИтоги по валютам:\n")
+            if not result:
+                file.write("  Нет данных\n")
+            else:
+                for valute, total in result.items():
+                    file.write(f"  {valute}: {total}\n")
+
+        print(f"Выписка была успешно сохранена в {path}")
+        return path
