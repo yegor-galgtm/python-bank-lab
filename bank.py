@@ -256,6 +256,8 @@ if running and client != None:
         print("3. Снять средства")
         print("4. Перевод")
         print("5. Выписка")
+        print("6. Создать счет")
+        print("7. Удалить счет")
         print("0. Выход")
 
         choice = read_int("Выбор: ")
@@ -275,8 +277,9 @@ if running and client != None:
                     print("Ошибка: это не ваш счёт.")
                     continue
                 amount = read_positive_money("Сумма пополнения: ")
-                bank.get_account(acc_id).plus(amount)
-                print(f"Счёт {acc_id} пополнен на {amount}")
+                acc = bank.get_account(acc_id)
+                acc.plus(amount)
+                print(f"Счёт {acc_id} пополнен на {amount} {acc.valute}")
 
             elif choice == 3:
                 acc_id = read_int("ID счёта: ")
@@ -284,14 +287,21 @@ if running and client != None:
                     print("Ошибка: это не ваш счёт.")
                     continue
                 amount = read_positive_money("Сумма снятия: ")
-                bank.get_account(acc_id).minus(amount)
-                print(f"Со счёта {acc_id} снято {amount}")
+                acc = bank.get_account(acc_id)
+                acc.minus(amount)
+                print(f"Со счёта {acc_id} снято {amount} {acc.valute}")
 
             elif choice == 4:
                 bank.trade()
 
             elif choice == 5:
                 bank.statement()
+
+            elif choice == 6:
+                bank.create_accounts()
+
+            elif choice == 7:
+                bank.delete_accounts()
 
             elif choice == 0:
                 print("До свидания!")
