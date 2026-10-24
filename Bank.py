@@ -1,4 +1,4 @@
-
+from decimal import Decimal
 import Account
 import Client
 
@@ -25,5 +25,14 @@ class Bank:
                 self.accounts.remove(account)
             else:
                 print("Ошибка, у клиента на счету есть деньги, счёт не подлежит удалению")
+        else:
+            print("Ошибка! У данного клиента нет такого аккаунта")
+    def add_money(self, client:Client, account:Account, amount:float):
+        if account in client.checks:
+            if amount > 0:
+                account.balance += Decimal(str(amount))
+                print(f"Баланс пополнен на: {amount}")
+            else:
+                print("Ошибка! Сумма пополнения должна быть положительным числом")
         else:
             print("Ошибка! У данного клиента нет такого аккаунта")
