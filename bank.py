@@ -24,13 +24,21 @@ class AccountNotEmptyError(BankException):
     "Попытка закрыть счёт с ненулевым балансом."
     pass
 
+class InvalidAmountError(BankException):
+    "Некорректная сумма операции."
+    pass
+
+class InvalidCurrencyError(BankException):
+    "Недопустимая валюта."
+    pass
+
+
 def read_int(prompt):
     while True:
         try:
             return int(input(prompt))
         except ValueError:
             print("Ошибка: введите целое число.")
-
 
 def read_positive_money(prompt):
     while True:
@@ -43,7 +51,6 @@ def read_positive_money(prompt):
             print("Ошибка: сумма должна быть положительной.")
             continue
         return value
-
 
 def read_currency(prompt):
     allowed = ("RUB", "USD", "EUR")
@@ -69,19 +76,19 @@ class Account():
         self.id_owner = id_owner
 
         if valute not in ("EUR", "USD", "RUB"):
-            raise ValueError(f"Недопустимая валюта: {valute}")
+            raise InvalidCurrencyError(f"Недопустимая валюта: {valute}")
         self.valute = valute
 
         self.balance = 0
 
     def plus(self, sums):
         if sums <= 0:
-            raise ValueError("Сумма пополнения должна быть положительной")
+            raise InvalidAmountError("Сумма пополнения должна быть положительной")
         self.balance += sums
 
     def minus(self, sums):
         if sums <= 0:
-            raise ValueError("Сумма снятия должна быть положительной")
+            raise InvalidAmountError("Сумма снятия должна быть положительной")
 
         if sums > self.balance:
             raise InsufficientFundsError(
@@ -98,6 +105,7 @@ class Account():
 
 class Client():
     _next_id = 1
+
     def __init__(self, full_name):
         self.id_client = Client._next_id
         Client._next_id += 1
@@ -126,6 +134,7 @@ class Client():
         self.accounts.remove(account)
         return account
 
+
 class Bank():
     def __init__(self):
         self.clients = {}
@@ -151,9 +160,10 @@ class Bank():
         print(f"Клиент успешно создан! ID: {client.id_client}")
         return client
 
-    def create_accounts(self):
+    def create_accounts(self, client_id=None):
         print("--Создание счёта для клиента--")
-        client_id = read_int("Введите ID клиента: ")
+        if client_id is None:
+            client_id = read_int("Введите ID клиента: ")
         client = self.get_client(client_id)
 
         valute = read_currency("Введите валюту счёта (RUB/USD/EUR): ")
@@ -168,9 +178,13 @@ class Bank():
         )
         return account
 
-    def delete_accounts(self):
+    def delete_accounts(self, client_id=None):
         id_account = read_int("Введите номер счёта для закрытия: ")
         account = self.get_account(id_account)
+
+        if client_id is not None and account.id_owner != client_id:
+            raise BankException("Это не ваш счёт")
+
         account.close()
 
         del self.accounts[id_account]
@@ -178,32 +192,42 @@ class Bank():
 
         print(f"Счёт {id_account} успешно закрыт!")
 
-    def trade(self):
+    def trade(self, client_id=None):
         start_id = read_int("Введите id счета с которого переводим деньги: ")
         start_acc = self.get_account(start_id)
+
+        if client_id is not None and start_acc.id_owner != client_id:
+            raise BankException("Это не ваш счёт")
+
         end_id = read_int("Введите id счета получателя: ")
         end_acc = self.get_account(end_id)
+
         if start_id == end_id:
-            raise ValueError("Попытка перевести деньги самому себе")
+            raise BankException("Попытка перевести деньги самому себе")
+
         if start_acc.valute != end_acc.valute:
-            raise CurrencyMismatchError(f"Нельзя перевести {start_acc.valute} в {end_acc.valute}")
-        money = read_positive_money("Cумма: ")
+            raise CurrencyMismatchError(
+                f"Нельзя перевести {start_acc.valute} в {end_acc.valute}"
+            )
+
+        money = read_positive_money("Сумма: ")
         start_acc.minus(money)
         end_acc.plus(money)
 
-    def statement(self):
-        id_own = read_int("Введите id клиента для получения выписки: ")
-        client = self.get_client(id_own)
+    def statement(self, client_id=None):
+        if client_id is None:
+            client_id = read_int("Введите id клиента для получения выписки: ")
+        client = self.get_client(client_id)
 
         result = {}
         for acc in client.accounts:
             result[acc.valute] = result.get(acc.valute, 0) + acc.balance
 
         time_gener = datetime.now()
-        path = f"statement_{id_own}.txt"
+        path = f"statement_{client_id}.txt"
 
         with open(path, "w", encoding="utf-8") as file:
-            file.write(f"Выписка по клиенту: {client.full_name} (ID {id_own})\n")
+            file.write(f"Выписка по клиенту: {client.full_name} (ID {client_id})\n")
             file.write(f"Сгенерировано: {time_gener:%Y-%m-%d %H:%M:%S}\n")
             file.write("\nСчета:\n")
 
@@ -224,7 +248,6 @@ class Bank():
         return path
 
 bank = Bank()
-
 client = None
 running = True
 
@@ -240,13 +263,10 @@ while running and client == None:
         print(f"Добро пожаловать, {client.full_name}!")
     except AccountNotFoundError:
         print(f"Клиент с ID {client_id} не найден.")
-        answer = input("Создать нового клиента? (да/нет): ")
-        if answer == "да":
-            try:
-                client = bank.create_client()
-                print(f"Вход выполнен под ID {client.id_client}")
-            except (BankException, ValueError) as e:
-                print(f"Ошибка: {e}")
+        answer = input("Создать нового клиента? (да/нет): ").strip().lower()
+        if answer in ("да", "yes", "y", "д"):
+            client = bank.create_client()
+            print(f"Вход выполнен под ID {client.id_client}")
 
 if running and client != None:
     while True:
@@ -273,35 +293,29 @@ if running and client != None:
 
             elif choice == 2:
                 acc_id = read_int("ID счёта: ")
-                if acc_id not in [a.id_account for a in client.accounts]:
-                    print("Ошибка: это не ваш счёт.")
-                    continue
+                acc = client.get_account(acc_id)
                 amount = read_positive_money("Сумма пополнения: ")
-                acc = bank.get_account(acc_id)
                 acc.plus(amount)
                 print(f"Счёт {acc_id} пополнен на {amount} {acc.valute}")
 
             elif choice == 3:
                 acc_id = read_int("ID счёта: ")
-                if acc_id not in [a.id_account for a in client.accounts]:
-                    print("Ошибка: это не ваш счёт.")
-                    continue
+                acc = client.get_account(acc_id)
                 amount = read_positive_money("Сумма снятия: ")
-                acc = bank.get_account(acc_id)
                 acc.minus(amount)
                 print(f"Со счёта {acc_id} снято {amount} {acc.valute}")
 
             elif choice == 4:
-                bank.trade()
+                bank.trade(client.id_client)
 
             elif choice == 5:
-                bank.statement()
+                bank.statement(client.id_client)
 
             elif choice == 6:
-                bank.create_accounts()
+                bank.create_accounts(client.id_client)
 
             elif choice == 7:
-                bank.delete_accounts()
+                bank.delete_accounts(client.id_client)
 
             elif choice == 0:
                 print("До свидания!")
@@ -310,5 +324,5 @@ if running and client != None:
             else:
                 print("Нет такого пункта меню.")
 
-        except (BankException, ValueError) as e:
+        except BankException as e:
             print(f"Ошибка: {e}")
