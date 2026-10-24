@@ -1,4 +1,3 @@
-from locale import currency
 
 import Account
 import Client
@@ -9,7 +8,9 @@ class Bank:
         self.clients = clients if clients is not None else []
         self.accounts = accounts if accounts is not None else []
     def add_client(self, client:Client):
-        self.clients.append(client)
+        if client not in self.clients:
+            self.clients.append(client)
+
     def add_account(self, account:Account, client:Client):
         existing_currencies = [existing_acc.currency for existing_acc in client.checks]
         if account.currency not in existing_currencies:
@@ -17,3 +18,12 @@ class Bank:
             self.accounts.append(account)
         else:
             print(f"Ошибка: у клиента уже есть счет в валюте {account.currency}")
+    def close_account(self, client:Client, account:Account):
+        if account in client.checks:
+            if account.balance == 0:
+                client.checks.remove(account)
+                self.accounts.remove(account)
+            else:
+                print("Ошибка, у клиента на счету есть деньги, счёт не подлежит удалению")
+        else:
+            print("Ошибка! У данного клиента нет такого аккаунта")
