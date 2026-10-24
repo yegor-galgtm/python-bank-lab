@@ -222,3 +222,83 @@ class Bank():
 
         print(f"Выписка была успешно сохранена в {path}")
         return path
+
+bank = Bank()
+
+client = None
+running = True
+
+while running and client == None:
+    client_id = read_int("Введите ID клиента (0 — выход): ")
+    if client_id == 0:
+        print("До свидания!")
+        running = False
+        continue
+
+    try:
+        client = bank.get_client(client_id)
+        print(f"Добро пожаловать, {client.full_name}!")
+    except AccountNotFoundError:
+        print(f"Клиент с ID {client_id} не найден.")
+        answer = input("Создать нового клиента? (да/нет): ")
+        if answer == "да":
+            try:
+                client = bank.create_client()
+                print(f"Вход выполнен под ID {client.id_client}")
+            except (BankException, ValueError) as e:
+                print(f"Ошибка: {e}")
+
+if running and client != None:
+    while True:
+        print("----Меню Bank----")
+        print("1. Мои счета")
+        print("2. Пополнить счёт")
+        print("3. Снять средства")
+        print("4. Перевод")
+        print("5. Выписка")
+        print("0. Выход")
+
+        choice = read_int("Выбор: ")
+
+        try:
+            if choice == 1:
+                if not client.accounts:
+                    print("У вас нет счетов.")
+                else:
+                    print("Ваши счета:")
+                    for acc in client.accounts:
+                        print(f"  Счёт {acc.id_account}: {acc.valute} — {acc.balance}")
+
+            elif choice == 2:
+                acc_id = read_int("ID счёта: ")
+                if acc_id not in [a.id_account for a in client.accounts]:
+                    print("Ошибка: это не ваш счёт.")
+                    continue
+                amount = read_positive_money("Сумма пополнения: ")
+                bank.get_account(acc_id).plus(amount)
+                print(f"Счёт {acc_id} пополнен на {amount}")
+
+            elif choice == 3:
+                acc_id = read_int("ID счёта: ")
+                if acc_id not in [a.id_account for a in client.accounts]:
+                    print("Ошибка: это не ваш счёт.")
+                    continue
+                amount = read_positive_money("Сумма снятия: ")
+                bank.get_account(acc_id).minus(amount)
+                print(f"Со счёта {acc_id} снято {amount}")
+
+            elif choice == 4:
+                bank.trade()
+
+            elif choice == 5:
+                bank.statement()
+
+            elif choice == 0:
+                print("До свидания!")
+                break
+
+            else:
+                print("Нет такого пункта меню.")
+
+        except (BankException, ValueError) as e:
+            print(f"Ошибка: {e}")
