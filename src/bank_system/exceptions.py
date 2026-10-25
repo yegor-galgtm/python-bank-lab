@@ -16,9 +16,9 @@ class DuplicateCurrencyError(BankException):
 class AccountNotEmptyError(BankException):
     """попытка закрыть счет с ненулевым балансом."""
 
-class InvalidAmountError(BankError):
+class InvalidAmountError(BankException):
     """сумма должна быть положительной."""
 
 
-class SelfTransferError(BankError):
+class SelfTransferError(BankException):
     """нельзя переводить деньги на тот же счёт."""
