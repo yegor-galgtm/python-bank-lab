@@ -36,3 +36,16 @@ class Bank:
                 print("Ошибка! Сумма пополнения должна быть положительным числом")
         else:
             print("Ошибка! У данного клиента нет такого аккаунта")
+
+    def withdraw_money(self, client: Client, account: Account, amount: float):
+        if account in client.checks:
+             if amount > 0 :
+                 if account.balance >= Decimal(str(amount)):
+                        account.balance -= Decimal(str(amount))
+                        print(f"Вы сняли : {amount} с баланса")
+                 else:
+                        print("Не счёте недостаточно средств")
+             else:
+                 print("Ошибка! Сумма для снятия должна быть положительным числом")
+        else:
+            print("Ошибка! У данного клиента нет такого аккаунта")
