@@ -49,3 +49,24 @@ class Bank:
                  print("Ошибка! Сумма для снятия должна быть положительным числом")
         else:
             print("Ошибка! У данного клиента нет такого аккаунта")
+    def transfer_money(self, client: Client, account: Account, amount: float, recipient:Client, res_acc:Account):
+        if account in client.checks:
+            if res_acc in recipient.checks:
+                if client!=recipient:
+                    if account.currency == res_acc.currency:
+                        if account.balance >= Decimal(str(amount)):
+                            if amount>0:
+                                res_acc.balance += Decimal(str(amount))
+                                account.balance -= Decimal(str(amount))
+                            else:
+                                print("Ошибка! Сумма перевода должна быть положительным числом")
+                        else:
+                            print("Ошибка! Недостаточно средств на счёте отправителя")
+                    else:
+                        print("Ошибка! Переводить можно только деньги в одной валюте")
+                else:
+                    print("Ошибка! Переводить деньги самому себе нельзя")
+            else:
+                print("Ошибка!У данного получателя нет такого счёта")
+        else:
+            print("Ошибка! У данного клиента нет такого аккаунта")
