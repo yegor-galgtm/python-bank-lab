@@ -5,6 +5,7 @@ from Bank import Bank
 from Client import Client
 from Account import Account
 from Exceptions import *
+from FileWork import *
 
 
 def get_positive_float(prompt_text):
@@ -58,8 +59,9 @@ def client_menu(bank, client):
         print("5. Перевод другому клиенту")
         print("6. Закрыть счет")
         print("7. Смена пользователя / Выход")
+        print("8. Получить выписку по счетам")
 
-        choice = input("Выберите пункт меню (1-7): ").strip()
+        choice = input("Выберите пункт меню (1-8): ").strip()
 
         try:
             if choice == "1":
@@ -122,8 +124,10 @@ def client_menu(bank, client):
             elif choice == "7":
                 print("Выход из профиля клиента...")
                 break
+            elif choice == "8":
+                bank_extract(client, bank)
             else:
-                print("⚠️ Неверный пункт меню. Пожалуйста, выберите число от 1 до 7.")
+                print("⚠️ Неверный пункт меню. Пожалуйста, выберите число от 1 до 8.")
 
         # Централизованный перехват всех ваших кастомных ошибок
         except AccountNotFoundError as e:
