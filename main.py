@@ -1,4 +1,4 @@
-from decimal import Decimal
+
 import sys
 
 from Bank import Bank
@@ -129,7 +129,7 @@ def client_menu(bank, client):
             else:
                 print("⚠️ Неверный пункт меню. Пожалуйста, выберите число от 1 до 8.")
 
-        # Централизованный перехват всех ваших кастомных ошибок
+        # Централизованный  кастомных ошибок
         except AccountNotFoundError as e:
             print(f"❌ Ошибка операции: {e}")
         except DuplicateCurrencyError as e:
