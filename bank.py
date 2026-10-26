@@ -10,6 +10,8 @@ class AccountNotEmptyError(Exception): #попытка закрыть счет �
     pass
 class ClientAlreadyExistsError(Exception): #клиент с таким ID уже существует.
     pass
+class BankError(Exception):
+    pass
 
 
 class Client():
@@ -128,6 +130,103 @@ class Bank():
         src.withdraw(amount) 
         dst.deposit(amount)
             
+bank=Bank()
+bank.add_client(Client(1,"Кутас Павел Викторович"))
+
+while True:
+    print("1.Введите id клиента:")
+    print("2.Выход.")
+    
+    user_input=input("Выбор:")
+    
+    if user_input=='1':
+        try:
+            user_id=int(input("id: "))
+        except ValueError:
+            print("Введите правильный ID")
+            continue
+
+        if user_id not in bank.client:
+            print("Клиент не найден!")
+            continue
+    
+        client=bank.client[user_id]
+        print(client.FIO)
+       
+    elif user_input=='2':
+            break
+        
+    elif user_input!='1':
+        print("Введите правильный выбор!")
+        continue
+    
+    while True:
+        print("1.Просмотр счетов.")
+        print("1.2.Открыть счет.")
+        print("2.Пополнение.")
+        print("3.Снятие.")
+        print("4.Перевод.")
+        print("5.Формирование выписки.")
+        print("6.Выход.")
+        
+        choice=input("Выбор:")
+        try:
+            if choice=='1':
+                if len(client.accounts)==0:
+                    print("У клиента нет счетов.")
+                else:
+                    for i in client.accounts:
+                        print(i)
+            
+            elif choice=='1.2':
+                curr=input("Введите валюту").upper()
+                acc=bank.open_account(client.ID,curr)
+                print(f"Счет открыт:{acc.account_number}")
+                
+            
+            elif choice=='2':
+                print("\nВаши счета:")
+                for acc in client.accounts:
+                    print(f"{acc.account_number} ({acc.currency})")
+                acc_num=input("Введите номер счета:").upper()
+                amount=float(input("Сумма:"))
+                bank.get_account(acc_num).deposit(amount)
+                print("Счет пополнен!")
+            
+            
+            elif choice=='3':
+                print("\nВаши счета:")
+                for acc in client.accounts:
+                    print(f"  {acc.account_number} ({acc.currency})")
+                acc_num=input("Введите номер счета:").upper()
+                amount=float(input("Сумма:"))
+                bank.get_account(acc_num).withdraw(amount)
+                print("Счет снято!")
+            
+            elif choice=='4':
+                print("\nВаши счета:")
+                for acc in client.accounts:
+                    print(f"  {acc.account_number} ({acc.currency})")
+                from_acc=input("Введите номер счета:").upper()
+                to_acc=input("Введите номер счета:").upper()
+                amount=float(input("Сумма:"))
+                bank.transfer(from_acc,to_acc,amount)
+                print(f"Переведено {amount}.")
+            
+            #elif choice=='5':
+            elif choice=='6':
+                print("Выход!")
+                break
+            else :
+                print("Введите правильный выбор!")
+    
+        except ValueError as e:
+            print(f"Ошибка ввода: {e}")
+        except BankError as e:
+            print(f"Ошибка банка: {e}")
+      
+
+   
         
         
         
