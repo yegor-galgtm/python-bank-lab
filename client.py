@@ -1,0 +1,7 @@
+class Client:
+
+    nextID = 1
+
+    def __init__(self, name):
+        self.name = name
+        self.ID = Client.nextID
