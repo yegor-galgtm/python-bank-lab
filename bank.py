@@ -1,3 +1,4 @@
+import datetime
 class InsufficientFundsError(Exception): #недостаточно средств для снятия/перевода
     pass
 class AccountNotFoundError(Exception): #счет или клиент не найден.
@@ -129,7 +130,36 @@ class Bank():
             
         src.withdraw(amount) 
         dst.deposit(amount)
+           
+           
+def statement(client):
+    filename = f"statement_{client.ID}.txt"
+    
+    with open(filename, "w", encoding="utf-8") as file:
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        file.write(f"Дата и время генерации: {now}\n")  
+        file.write(f"Клиент: {client.FIO} (ID: {client.ID})\n")
+        
+        totals = {} 
             
+        if len(client.accounts) == 0:
+            file.write("У клиента нет открытых счетов.\n")
+        else:
+            for acc in client.accounts:
+                file.write(f"Счет: {acc.account_number} | Валюта: {acc.currency} | Баланс: {acc.balance}\n")
+                totals[acc.currency] = totals.get(acc.currency, 0) + acc.balance
+            
+        file.write("ИТОГОВЫЙ БАЛАНС:\n")
+        if not totals:
+            file.write("0\n")
+        else:
+            for currency, total in totals.items():
+                file.write(f"{currency}: {total}\n")
+                
+    print(f"Выписка успешно сохранена в файл: {filename}")
+           
+           
+ 
 bank=Bank()
 bank.add_client(Client(1,"Кутас Павел Викторович"))
 
@@ -167,7 +197,8 @@ while True:
         print("3.Снятие.")
         print("4.Перевод.")
         print("5.Формирование выписки.")
-        print("6.Выход.")
+        print("6.Закрытие счета.")
+        print("7.Выход.")
         
         choice=input("Выбор:")
         try:
@@ -213,12 +244,25 @@ while True:
                 bank.transfer(from_acc,to_acc,amount)
                 print(f"Переведено {amount}.")
             
-            #elif choice=='5':
-            elif choice=='6':
+            elif choice=='5':
+                statement(client)
+                
+            elif choice=='6': 
+                print("\nВаши счета:")
+                for acc in client.accounts:
+                    print(f"  {acc.account_number} ({acc.currency})")
+                acc_num=input("Введите номер счета для закрытия: ").upper()
+                bank.close_account(acc_num)
+                print("Счет закрыт!")
+            
+            
+            elif choice=='7':
                 print("Выход!")
                 break
             else :
                 print("Введите правильный выбор!")
+                
+
     
         except ValueError as e:
             print(f"Ошибка ввода: {e}")
