@@ -1,28 +1,42 @@
 from client import Client
 from account import Account
+from exceptions import CurrencyMismatchError, SameAccountError, AccountNotFoundError
 
 class Bank:
 
     def __init__(self):
-        self.clientList = []
-        self.client_account = {}
+        self.clientList = {}
+        self.accountList = {}
 
-    def registration(self, name):
+    def registration(self, name): #регистрация
         a = Client(name)
-        self.clientList.append(a)
-        accountList = set()
-        self.client_account[Client.ID] = accountList
+        self.clientList[a.ID] = a
+        return a #типа вернуть клиента
 
-    def openAccount(self, ownerID, currency):
-        a = Account(ownerID, currency)
-        accountList = self.client_account[ownerID]
-        accountList.add(a.ID)
+    def openAccount(self, ownerID, currency): #открытие счета
+        if ownerID not in self.clientList:
+            raise AccountNotFoundError(f"клиента с ID {ownerID} не существует")
+        a = self.clientList[ownerID]
+        b = a.addAccount(currency)
+        self.accountList[b.ID] = b
 
-    def closeAccount(self, ownerID, accountID):
-        accountList = self.client_account[ownerID]
-        accountList.discard(accountID)
+    def closeAccount(self, ownerID, accountID): #закрытие счета
+        if ownerID not in self.clientList:
+                raise AccountNotFoundError(f"клиента с ID {ownerID} не существует")
+        a = self.clientList[ownerID]
+        a.deleteAccount(accountID)
+        del self.accountList[accountID]
 
-    # def transfer(self, ownerID1, accountID1, ownerID2, accountID2, quantity):
-    #     account1 = self.client_account[ownerID1]
-    #     account2 = self.client_account[ownerID2]
-    #     account1.
+    def transfer(self, accountID1, accountID2, quantity):
+        if accountID1 not in self.accountList:
+                    raise AccountNotFoundError(f"счета с ID {accountID1} не существует")
+        if accountID2 not in self.accountList:
+                    raise AccountNotFoundError(f"счета с ID {accountID2} не существует")
+        if accountID1 == accountID2:
+            raise SameAccountError("невозможно перевести деньги самому себе")
+        a = self.accountList[accountID1]
+        b = self.accountList[accountID2]
+        if a.currency != b.currency:
+            raise CurrencyMismatchError("перевод между счетами разных валют невозможен")
+        a.withdraw(quantity)
+        b.add(quantity)
