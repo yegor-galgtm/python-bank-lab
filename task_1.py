@@ -87,3 +87,25 @@ class Bank:
         else:
             print("Перевод отменен из-за ошибки списания.")
             return False
+
+if __name__ == "__main__":
+    print("=== Инициализация банка и счетов ===")
+    my_bank = Bank("БеларусьБанк-Лаб")
+
+    acc1 = Account("Иван Иванов", "BY13BLBB3014", 500.0)
+    acc2 = Account("Анна Петрова", "BY56BLBB3015", 200.0)
+
+    my_bank.add_account(acc1)
+    my_bank.add_account(acc2)
+
+    print("\n=== Проверка операций пополнения и снятия ===")
+    acc1.deposit(150.0)
+    acc2.withdraw(50.0)
+    acc2.withdraw(5000.0)
+
+    print("\n=== Проверка денежного перевода между счетами ===")
+    my_bank.transfer("BY13BLBB3014", "BY56BLBB3015", 100.0)
+
+    print("\n=== Итоговые балансы клиентов ===")
+    print(f"Баланс владельца {acc1.owner} ({acc1.account_number}): {acc1.get_balance()} руб.")
+    print(f"Баланс владельца {acc2.owner} ({acc2.account_number}): {acc2.get_balance()} руб.")
