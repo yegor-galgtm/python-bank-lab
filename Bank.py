@@ -1,7 +1,7 @@
 from decimal import Decimal
 from Exceptions import *
-import Account
-import Client
+from  Account import Account
+from Client import Client
 
 
 class Bank:
@@ -32,26 +32,26 @@ class Bank:
         client.checks.remove(account)
 
 
-    def add_money(self, client:Client, account:Account, amount:float):
+    def add_money(self, client:Client, account:Account, amount:Decimal):
         if client not in self.clients or account not in client.checks:
             raise AccountNotFoundError(account, client, self)
         if amount <= 0:
             raise ValueError("Сумма пополнения должна быть положительным числом")
-        account.balance += Decimal(str(amount))
+        account.balance += amount
 
 
-    def withdraw_money(self, client: Client, account: Account, amount: float):
+    def withdraw_money(self, client: Client, account: Account, amount: Decimal):
         if client not in self.clients or account not in client.checks:
             raise AccountNotFoundError(account, client, self)
         if amount <= 0:
             raise ValueError("Сумма снятия должна быть положительным числом")
-        if account.balance<Decimal(str(amount)):
-            raise InsufficientFundsError(account.balance, Decimal(str(amount)))
-        account.balance -= Decimal(str(amount))
+        if account.balance<amount:
+            raise InsufficientFundsError(account.balance, amount)
+        account.balance -= amount
 
 
 
-    def transfer_money(self, client: Client, account: Account, amount: float, recipient:Client, res_acc:Account):
+    def transfer_money(self, client: Client, account: Account, amount: Decimal, recipient:Client, res_acc:Account):
         if client not in self.clients or account not in client.checks:
             raise AccountNotFoundError(account, client, self)
         if recipient not in self.clients or res_acc not in recipient.checks:
@@ -60,9 +60,9 @@ class Bank:
             raise ValueError("Сумма перевода должна быть положительным числом")
         if client == recipient:
             raise ValueError("Переводить деньги самому себе нельзя")
-        if account.balance<Decimal(str(amount)):
-            raise InsufficientFundsError(account.balance, Decimal(str(amount)))
+        if account.balance<amount:
+            raise InsufficientFundsError(account.balance, amount)
         if account.currency != res_acc.currency:
             raise CurrencyMismatchError(account.currency, res_acc.currency)
-        account.balance -= Decimal(str(amount))
-        res_acc.balance += Decimal(str(amount))
+        account.balance -= amount
+        res_acc.balance += amount

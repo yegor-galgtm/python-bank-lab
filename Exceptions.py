@@ -1,18 +1,23 @@
+from decimal import Decimal
+
+
 class InsufficientFundsError(Exception):
     def __init__(self, current_balance, requested_amount):
-        deficit = requested_amount - current_balance
-        message = (f"Недостаточно средств! На счете: {current_balance}, "
-                   f"запрошено: {requested_amount} (не хватает: {deficit})")
+        cur = Decimal(str(current_balance))
+        req = Decimal(str(requested_amount))
+        deficit = req - cur
+        message = (f"Недостаточно средств! На счете: {cur}, "
+                   f"запрошено: {req} (не хватает: {deficit})")
         super().__init__(message)
-        self.current_balance = current_balance
-        self.requested_amount = requested_amount
+        self.current_balance = cur
+        self.requested_amount = req
         self.deficit = deficit
 
 
 class AccountNotFoundError(Exception):
     def __init__(self, account, client, bank):
         find_client = client in bank.clients
-        find_account = account in client.checks
+        find_account = account in client.checks if account else False
         if not find_client:
             message = "Такого клиента нет в этом банке"
         elif not find_account:

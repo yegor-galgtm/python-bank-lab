@@ -8,12 +8,12 @@ from Exceptions import *
 from FileWork import *
 
 
-def get_positive_float(prompt_text):
+def get_positive_Decimal(prompt_text):
     """Безопасно запрашивает положительное число с плавающей точкой."""
     while True:
         try:
             user_input = input(prompt_text).strip()
-            amount = float(user_input)
+            amount = Decimal(str(float(user_input)))
             if amount <= 0:
                 print("⚠️ Ошибка! Сумма должна быть строго больше нуля. Попробуйте снова.")
                 continue
@@ -83,16 +83,16 @@ def client_menu(bank, client):
             elif choice == "3":
                 acc_id = get_int("Введите номер вашего счета для пополнения: ")
                 acc = find_account_by_id(client, acc_id)
-                amount = get_positive_float("Введите сумму пополнения: ")
+                amount = get_positive_Decimal("Введите сумму пополнения: ")
                 bank.add_money(client, acc, amount)
-                print(f"✅ Баланс успешно пополнен. Текущий баланс: {acc.balance:.2f} {acc.currency}")
+                print(f"✅ Баланс успешно пополнен. Текущий баланс: {acc.balance} {acc.currency}")
 
             elif choice == "4":
                 acc_id = get_int("Введите номер вашего счета для снятия: ")
                 acc = find_account_by_id(client, acc_id)
-                amount = get_positive_float("Введите сумму снятия: ")
+                amount = get_positive_Decimal("Введите сумму снятия: ")
                 bank.withdraw_money(client, acc, amount)
-                print(f"✅ Деньги успешно сняты. Остаток: {acc.balance:.2f} {acc.currency}")
+                print(f"✅ Деньги успешно сняты. Остаток: {acc.balance} {acc.currency}")
 
             elif choice == "5":
                 # Сбор данных отправителя
@@ -109,11 +109,11 @@ def client_menu(bank, client):
                 rec_acc_id = get_int("Введите номер счета получателя, НА КОТОРЫЙ перевести: ")
                 res_acc = find_account_by_id(recipient, rec_acc_id)
 
-                amount = get_positive_float("Введите сумму перевода: ")
+                amount = get_positive_Decimal("Введите сумму перевода: ")
 
                 # Вызов метода перевода
                 bank.transfer_money(client, sender_acc, amount, recipient, res_acc)
-                print(f"✅ Перевод на сумму {amount:.2f} {sender_acc.currency} успешно выполнен!")
+                print(f"✅ Перевод на сумму {amount} {sender_acc.currency} успешно выполнен!")
 
             elif choice == "6":
                 acc_id = get_int("Введите номер счета, который вы хотите ЗАКРЫТЬ: ")
@@ -129,7 +129,7 @@ def client_menu(bank, client):
             else:
                 print("⚠️ Неверный пункт меню. Пожалуйста, выберите число от 1 до 8.")
 
-        # Централизованный  кастомных ошибок
+        # Централизованный кастомных ошибок
         except AccountNotFoundError as e:
             print(f"❌ Ошибка операции: {e}")
         except DuplicateCurrencyError as e:
