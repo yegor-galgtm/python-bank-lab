@@ -136,3 +136,126 @@ class Schet:
             f.write(v + ": " + str(itogi[v]) + "\n")
         f.close()
         return imya
+    def vvod_celoe(prompt):
+    while True:
+        s = input(prompt).strip()
+        try:
+            return int(s)
+        except ValueError:
+            print("нужно целое число")
+
+
+def vvod_summa(prompt):
+    while True:
+        s = input(prompt).strip().replace(",", ".")
+        try:
+            x = float(s)
+        except ValueError:
+            print("нужно число")
+            continue
+        if x <= 0:
+            print("сумма должна быть больше нуля")
+            continue
+        return x
+
+
+def vvod_valuty(prompt):
+    while True:
+        s = input(prompt).strip().upper()
+        if s in ["RUB", "USD", "EUR"]:
+            return s
+        print("можно только RUB, USD, EUR")
+
+
+def main():
+    bank = Bank()
+
+    demo = bank.dobavit_klienta("иванов иван")
+    bank.otkryt_schet(demo.id, "RUB")
+    bank.otkryt_schet(demo.id, "USD")
+    print("тестовый клиент id =", demo.id)
+
+    k = None
+    while k is None:
+        id_kl = vvod_celoe("введите ваш id: ")
+        try:
+            k = bank.vzyat_klienta(id_kl)
+            print("здравствуйте,", k.fio)
+        except SchetNeNaydenError:
+            print("клиент не найден")
+            otvet = input("создать нового? (y/n): ").strip().lower()
+            if otvet == "y":
+                fio = input("введите фио: ").strip()
+                try:
+                    k = bank.dobavit_klienta(fio)
+                    print("создан клиент id =", k.id)
+                except ValueError as e:
+                    print(e)
+
+    while True:
+        print("\n1. показать счета")
+        print("2. открыть счет")
+        print("3. закрыть счет")
+        print("4. пополнить")
+        print("5. снять")
+        print("6. перевод")
+        print("7. выписка")
+        print("0. выход")
+
+        vybor = input("пункт: ").strip()
+
+        try:
+            if vybor == "1":
+                if len(k.scheta) == 0:
+                    print("у вас нет счетов")
+                for s in k.scheta:
+                    print(s.nomer, s.valuta, s.balans)
+
+            elif vybor == "2":
+                v = vvod_valuty("валюта: ")
+                s = bank.otkryt_schet(k.id, v)
+                print("открыт счет", s.nomer)
+
+            elif vybor == "3":
+                n = vvod_celoe("номер счета: ")
+                bank.zakryt_schet(k.id, n)
+                print("счет закрыт")
+
+            elif vybor == "4":
+                n = vvod_celoe("номер счета: ")
+                s = vvod_summa("сумма: ")
+                bank.popolnit(k.id, n, s)
+                print("пополнено")
+
+            elif vybor == "5":
+                n = vvod_celoe("номер счета: ")
+                s = vvod_summa("сумма: ")
+                bank.snyat(k.id, n, s)
+                print("снято")
+
+            elif vybor == "6":
+                n1 = vvod_celoe("счет откуда: ")
+                n2 = vvod_celoe("счет кому: ")
+                s = vvod_summa("сумма: ")
+                bank.perevod(k.id, n1, n2, s)
+                print("переведено")
+
+            elif vybor == "7":
+                imya = bank.sdelat_vypisku(k.id)
+                print("выписка сохранена:", imya)
+
+            elif vybor == "0":
+                print("пока")
+                break
+
+            else:
+                print("нет такого пункта")
+
+        except BankError as e:
+            print("ошибка:", e)
+        except ValueError as e:
+            print("ошибка:", e)
+
+
+if __name__ == "__main__":
+    main()
