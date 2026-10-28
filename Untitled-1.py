@@ -83,3 +83,31 @@ class Schet:
         if s.balans != 0:
             raise SchetNePustoyError("нельзя закрыть счет, на нем есть деньги")
         k.scheta.remove(s)
+            def popolnit(self, id_klienta, nomer, summa):
+        k = self.vzyat_klienta(id_klienta)
+        s = k.nayti_schet(nomer)
+        s.popolnit(summa)
+
+    def snyat(self, id_klienta, nomer, summa):
+        k = self.vzyat_klienta(id_klienta)
+        s = k.nayti_schet(nomer)
+        s.snyat(summa)
+
+    def perevod(self, id_klienta, nomer_ot, nomer_komu, summa):
+        k = self.vzyat_klienta(id_klienta)
+        s_ot = k.nayti_schet(nomer_ot)
+
+        s_komu = None
+        for kl in self.klienty.values():
+            for s in kl.scheta:
+                if s.nomer == nomer_komu:
+                    s_komu = s
+        if s_komu is None:
+            raise SchetNeNaydenError("счет получателя не найден")
+        if s_ot.id_klienta == s_komu.id_klienta:
+            raise ValueError("нельзя переводить самому себе")
+        if s_ot.valuta != s_komu.valuta:
+            raise ValutaNeSovpadaetError("валюты счетов не совпадают")
+
+        s_ot.snyat(summa)
+        s_komu.popolnit(summa)
