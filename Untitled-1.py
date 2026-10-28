@@ -111,3 +111,28 @@ class Schet:
 
         s_ot.snyat(summa)
         s_komu.popolnit(summa)
+            def sdelat_vypisku(self, id_klienta):
+        k = self.vzyat_klienta(id_klienta)
+        imya = "statement_" + str(id_klienta) + ".txt"
+        f = open(imya, "w", encoding="utf-8")
+
+        f.write("выписка по счетам: " + k.fio + "\n")
+        f.write("дата: " + str(datetime.now()) + "\n")
+        f.write("----\n")
+
+        itogi = {}
+        if len(k.scheta) == 0:
+            f.write("счетов нет\n")
+        for s in k.scheta:
+            f.write("номер " + str(s.nomer) + " | " + s.valuta + " | " + str(s.balans) + "\n")
+            if s.valuta in itogi:
+                itogi[s.valuta] = itogi[s.valuta] + s.balans
+            else:
+                itogi[s.valuta] = s.balans
+
+        f.write("----\n")
+        f.write("итоги по валютам:\n")
+        for v in itogi:
+            f.write(v + ": " + str(itogi[v]) + "\n")
+        f.close()
+        return imya
