@@ -52,3 +52,34 @@ class Schet:
             if s.nomer == nomer:
                 return s
         raise SchetNeNaydenError("счет не найден")
+    class Bank:
+    def __init__(self):
+        self.klienty = {}
+
+    def dobavit_klienta(self, fio):
+        if fio == "":
+            raise ValueError("фио не может быть пустым")
+        k = Klient(fio)
+        self.klienty[k.id] = k
+        return k
+
+    def vzyat_klienta(self, id_klienta):
+        if id_klienta not in self.klienty:
+            raise SchetNeNaydenError("клиент не найден")
+        return self.klienty[id_klienta]
+
+    def otkryt_schet(self, id_klienta, valuta):
+        k = self.vzyat_klienta(id_klienta)
+        for s in k.scheta:
+            if s.valuta == valuta:
+                raise ValutaUzheEstError("у клиента уже есть счет в этой валюте")
+        s = Schet(id_klienta, valuta)
+        k.scheta.append(s)
+        return s
+
+    def zakryt_schet(self, id_klienta, nomer):
+        k = self.vzyat_klienta(id_klienta)
+        s = k.nayti_schet(nomer)
+        if s.balans != 0:
+            raise SchetNePustoyError("нельзя закрыть счет, на нем есть деньги")
+        k.scheta.remove(s)
