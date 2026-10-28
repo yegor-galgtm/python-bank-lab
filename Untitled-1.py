@@ -1,4 +1,7 @@
-print("")
+from datetime import datetime
+
+
+# ---------- исключения ----------
 class BankError(Exception):
     pass
 
@@ -16,6 +19,9 @@ class ValutaUzheEstError(BankError):
 
 class SchetNePustoyError(BankError):
     pass
+
+
+# ---------- счёт ----------
 class Schet:
     _nomer = 10000001
     valuty = ["RUB", "USD", "EUR"]
@@ -38,8 +44,11 @@ class Schet:
         if summa > self.balans:
             raise NetDenegError("на счете недостаточно денег")
         self.balans = self.balans - summa
-        class Klient: 
-         _id = 1
+
+
+# ---------- клиент ----------
+class Klient:
+    _id = 1
 
     def __init__(self, fio):
         self.id = Klient._id
@@ -52,7 +61,10 @@ class Schet:
             if s.nomer == nomer:
                 return s
         raise SchetNeNaydenError("счет не найден")
-    class Bank:
+
+
+# ---------- банк ----------
+class Bank:
     def __init__(self):
         self.klienty = {}
 
@@ -83,7 +95,8 @@ class Schet:
         if s.balans != 0:
             raise SchetNePustoyError("нельзя закрыть счет, на нем есть деньги")
         k.scheta.remove(s)
-            def popolnit(self, id_klienta, nomer, summa):
+
+    def popolnit(self, id_klienta, nomer, summa):
         k = self.vzyat_klienta(id_klienta)
         s = k.nayti_schet(nomer)
         s.popolnit(summa)
@@ -111,7 +124,8 @@ class Schet:
 
         s_ot.snyat(summa)
         s_komu.popolnit(summa)
-            def sdelat_vypisku(self, id_klienta):
+
+    def sdelat_vypisku(self, id_klienta):
         k = self.vzyat_klienta(id_klienta)
         imya = "statement_" + str(id_klienta) + ".txt"
         f = open(imya, "w", encoding="utf-8")
@@ -136,7 +150,10 @@ class Schet:
             f.write(v + ": " + str(itogi[v]) + "\n")
         f.close()
         return imya
-    def vvod_celoe(prompt):
+
+
+# ---------- ввод ----------
+def vvod_celoe(prompt):
     while True:
         s = input(prompt).strip()
         try:
@@ -167,6 +184,7 @@ def vvod_valuty(prompt):
         print("можно только RUB, USD, EUR")
 
 
+# ---------- меню ----------
 def main():
     bank = Bank()
 
