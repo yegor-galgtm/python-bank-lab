@@ -38,3 +38,17 @@ class Schet:
         if summa > self.balans:
             raise NetDenegError("на счете недостаточно денег")
         self.balans = self.balans - summa
+        class Klient: 
+         _id = 1
+
+    def __init__(self, fio):
+        self.id = Klient._id
+        Klient._id = Klient._id + 1
+        self.fio = fio
+        self.scheta = []
+
+    def nayti_schet(self, nomer):
+        for s in self.scheta:
+            if s.nomer == nomer:
+                return s
+        raise SchetNeNaydenError("счет не найден")
