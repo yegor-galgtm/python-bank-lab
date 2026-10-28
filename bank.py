@@ -1,5 +1,4 @@
 from client import Client
-from account import Account
 from exceptions import CurrencyMismatchError, SameAccountError, AccountNotFoundError
 
 class Bank:
@@ -19,6 +18,7 @@ class Bank:
         a = self.clientList[ownerID]
         b = a.addAccount(currency)
         self.accountList[b.ID] = b
+        return  b.ID
 
     def closeAccount(self, ownerID, accountID): #закрытие счета
         if ownerID not in self.clientList:
