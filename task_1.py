@@ -1,111 +1,206 @@
+import datetime
+
+CURRENCIES = ["RUB", "USD", "EUR"]
+
+class BankError(Exception):
+    pass
+
+
+class InsufficientFundsError(BankError):
+    pass
+
+
+class AccountNotFoundError(BankError):
+    pass
+
+
+class CurrencyMismatchError(BankError):
+    pass
+
+
+class DuplicateCurrencyError(BankError):
+    pass
+
+
+class AccountNotEmptyError(BankError):
+    pass
+
+
+class ClientAlreadyExistsError(BankError):
+    pass
+
 class Account:
-    def __init__(self, owner="Клиент", account_number="0000", initial_balance=0.0):
-        self.owner = str(owner)
-        self.account_number = str(account_number)
-        try:
-            self.balance = float(initial_balance)
-        except (ValueError, TypeError):
-            self.balance = 0.0
+    _next_number = 100001
 
-    def deposit(self, amount):
-        try:
-            amount = float(amount)
-        except (ValueError, TypeError):
-            print("Ошибка: сумма должна быть числом.")
-            return False
+    def __init__(self, owner_id, currency):
+        self._number = str(Account._next_number)
+        Account._next_number += 1
+        self._owner_id = owner_id
+        self._currency = currency
+        self._balance = 0.0
 
-        if amount > 0:
-            self.balance += amount
-            print(f"Счет {self.account_number} пополнен на {amount}. Баланс: {self.balance}")
-            return True
-        else:
-            print("Ошибка: сумма пополнения должна быть больше нуля.")
-            return False
+    def get_number(self):
+        return self._number
 
-    def withdraw(self, amount):
-        try:
-            amount = float(amount)
-        except (ValueError, TypeError):
-            print("Ошибка: сумма должна быть числом.")
-            return False
+    def get_owner_id(self):
+        return self._owner_id
 
-        if amount <= 0:
-            print("Ошибка: сумма снятия должна быть больше нуля.")
-            return False
-        
-        if amount > self.balance:
-            print(f"Ошибка: недостаточно средств на счете {self.account_number}.")
-            return False
-        
-        self.balance -= amount
-        print(f"Со счета {self.account_number} снято {amount}. Остаток: {self.balance}")
-        return True
+    def get_currency(self):
+        return self._currency
 
     def get_balance(self):
-        return self.balance
+        return self._balance
 
-class Bank:
-    def __init__(self, name="Центральный Банк"):
-        self.name = str(name)
-        self.accounts = {}
+    def deposit(self, amount):
+        amount = round(amount, 2)
+        if amount <= 0:
+            raise ValueError("Сумма должна быть больше нуля.")
+        self._balance = round(self._balance + amount, 2)
+
+    def withdraw(self, amount):
+        amount = round(amount, 2)
+        if amount <= 0:
+            raise ValueError("Сумма должна быть больше нуля.")
+        if amount > self._balance:
+            raise InsufficientFundsError(
+                f"Недостаточно средств на счете {self._number}: "
+                f"на счете {self._balance} {self._currency}, а нужно {amount}."
+            )
+        self._balance = round(self._balance - amount, 2)
+
+
+class Client:
+    def __init__(self, client_id, full_name):
+        self._id = client_id
+        self._full_name = full_name
+        self._accounts = []
+
+    def get_id(self):
+        return self._id
+
+    def get_full_name(self):
+        return self._full_name
+
+    def get_accounts(self):
+        return self._accounts
 
     def add_account(self, account):
-        if not isinstance(account, Account):
-            print("Ошибка: можно добавлять только объекты класса Account.")
-            return False
+        self._accounts.append(account)
 
-        if account.account_number in self.accounts:
-            print(f"Счет с номером {account.account_number} уже существует!")
-            return False
-        else:
-            self.accounts[account.account_number] = account
-            print(f"Счет {account.account_number} успешно зарегистрирован в банке {self.name}.")
-            return True
+    def remove_account(self, account):
+        self._accounts.remove(account)
 
-    def find_account(self, account_number):
-        account_number = str(account_number)
-        if account_number in self.accounts:
-            return self.accounts[account_number]
-        else:
-            print(f"Счет {account_number} не найден.")
-            return None
+    def find_account_by_currency(self, currency):
+        for account in self._accounts:
+            if account.get_currency() == currency:
+                return account
+        return None
 
-    def transfer(self, from_acc_num, to_acc_num, amount):
-        print(f"\nВыполняется перевод {amount} со счета {from_acc_num} на счет {to_acc_num}...")
-        
-        from_account = self.find_account(from_acc_num)
-        to_account = self.find_account(to_acc_num)
 
-        if from_account is None or to_account is None:
-            print("Ошибка перевода: один из счетов не существует.")
-            return False
+class Bank:
+    def __init__(self, name):
+        self._name = name
+        self._clients = {}
+        self._accounts = {}
 
-        if from_account.withdraw(amount):
-            to_account.deposit(amount)
-            print("Перевод успешно выполнен!")
-            return True
-        else:
-            print("Перевод отменен из-за ошибки списания.")
-            return False
+    def get_name(self):
+        return self._name
+
+    def register_client(self, client_id, full_name):
+        if client_id in self._clients:
+            raise ClientAlreadyExistsError(f"Клиент с ID {client_id} уже существует.")
+        full_name = full_name.strip()
+        if full_name == "":
+            raise ValueError("ФИО не может быть пустым.")
+        client = Client(client_id, full_name)
+        self._clients[client_id] = client
+        return client
+
+    def find_client(self, client_id):
+        return self._clients.get(client_id)
+
+    def get_client(self, client_id):
+        client = self.find_client(client_id)
+        if client is None:
+            raise AccountNotFoundError(f"Клиент с ID {client_id} не найден.")
+        return client
+
+    def get_account(self, account_number):
+        account_number = str(account_number).strip()
+        if account_number not in self._accounts:
+            raise AccountNotFoundError(f"Счет {account_number} не найден.")
+        return self._accounts[account_number]
+
+    def open_account(self, client_id, currency):
+        client = self.get_client(client_id)
+        currency = currency.strip().upper()
+        if currency not in CURRENCIES:
+            raise ValueError("Неизвестная валюта. Доступно: " + ", ".join(CURRENCIES))
+        if client.find_account_by_currency(currency) is not None:
+            raise DuplicateCurrencyError(f"У клиента уже есть счет в валюте {currency}.")
+        account = Account(client_id, currency)
+        client.add_account(account)
+        self._accounts[account.get_number()] = account
+        return account
+
+    def close_account(self, account_number):
+        account = self.get_account(account_number)
+        if account.get_balance() != 0:
+            raise AccountNotEmptyError(
+                f"Нельзя закрыть счет {account.get_number()}: баланс {account.get_balance()} "
+                f"{account.get_currency()}, он должен быть равен нулю."
+            )
+        client = self.get_client(account.get_owner_id())
+        client.remove_account(account)
+        del self._accounts[account.get_number()]
+
+    def deposit(self, account_number, amount):
+        account = self.get_account(account_number)
+        account.deposit(amount)
+
+    def withdraw(self, account_number, amount):
+        account = self.get_account(account_number)
+        account.withdraw(amount)
+
+    def transfer(self, from_number, to_number, amount):
+        from_account = self.get_account(from_number)
+        to_account = self.get_account(to_number)
+
+        if from_account is to_account:
+            raise ValueError("Нельзя переводить деньги на тот же самый счет.")
+        if from_account.get_currency() != to_account.get_currency():
+            raise CurrencyMismatchError(
+                f"Валюты счетов не совпадают: {from_account.get_currency()} и "
+                f"{to_account.get_currency()}."
+            )
+
+        from_account.withdraw(amount)
+        to_account.deposit(amount)
+
 
 if __name__ == "__main__":
-    print("=== Инициализация банка и счетов ===")
-    my_bank = Bank("БеларусьБанк-Лаб")
+    bank = Bank("Лабораторный банк")
+    ivan = bank.register_client(1, "Иванов Иван")
+    anna = bank.register_client(2, "Петрова Анна")
 
-    acc1 = Account("Иван Иванов", "BY13BLBB3014", 500.0)
-    acc2 = Account("Анна Петрова", "BY56BLBB3015", 200.0)
+    acc1 = bank.open_account(1, "RUB")
+    acc2 = bank.open_account(2, "RUB")
+    bank.deposit(acc1.get_number(), 500)
 
-    my_bank.add_account(acc1)
-    my_bank.add_account(acc2)
+    try:
+        bank.open_account(1, "RUB")
+    except DuplicateCurrencyError as e:
+        print("Ошибка:", e)
 
-    print("\n=== Проверка операций пополнения и снятия ===")
-    acc1.deposit(150.0)
-    acc2.withdraw(50.0)
-    acc2.withdraw(5000.0)
+    try:
+        bank.withdraw(acc1.get_number(), 5000)
+    except InsufficientFundsError as e:
+        print("Ошибка:", e)
 
-    print("\n=== Проверка денежного перевода между счетами ===")
-    my_bank.transfer("BY13BLBB3014", "BY56BLBB3015", 100.0)
+    bank.transfer(acc1.get_number(), acc2.get_number(), 100)
+    print(acc1.get_balance(), acc2.get_balance())
 
-    print("\n=== Итоговые балансы клиентов ===")
-    print(f"Баланс владельца {acc1.owner} ({acc1.account_number}): {acc1.get_balance()} руб.")
-    print(f"Баланс владельца {acc2.owner} ({acc2.account_number}): {acc2.get_balance()} руб.")
+    try:
+        bank.close_account(acc1.get_number())
+    except AccountNotEmptyError as e:
+        print("Ошибка:", e)
